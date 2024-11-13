@@ -2,11 +2,17 @@ package com.dini.mindmatrix.peripherals;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.io.InputStream;
 
 public class About extends JFrame {
     private static final long serialVersionUID = 1L;
+    private JLabel backgroundLabel;
     private JButton backButton;
     private JLabel aboutLabel;
+    private Font customFontRog;
+    private Font customFontAgency;
+    private int selectedIndex = -1;
 
     public About(Component parent) {
         setTitle("About");
@@ -15,20 +21,132 @@ public class About extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setResizable(false);
 
-        aboutLabel = new JLabel("<html><div style='text-align: center;'>Mind Matrix - a Puzzle Game<br><br>Version 1.0.0<br><br>Developed by DiniK</div></html>", SwingConstants.CENTER);
+        ImageIcon icon = new ImageIcon(getClass().getResource("/resources/icon.png"));
+        setIconImage(icon.getImage());
+
+        try {
+            InputStream isRog = getClass().getResourceAsStream("/resources/agency.ttf");
+            customFontRog = Font.createFont(Font.TRUETYPE_FONT, isRog).deriveFont(Font.BOLD, 20f);
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(customFontRog);
+
+            InputStream isAgency = getClass().getResourceAsStream("/resources/rog.otf");
+            customFontAgency = Font.createFont(Font.TRUETYPE_FONT, isAgency).deriveFont(Font.PLAIN, 14f);
+            ge.registerFont(customFontAgency);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ImageIcon backgroundIcon = new ImageIcon(getClass().getResource("/resources/bg.png"));
+        backgroundLabel = new JLabel(backgroundIcon);
+        backgroundLabel.setLayout(new BorderLayout());
+
+        aboutLabel = new JLabel("<html><div style='text-align: center;'>Mind Matrix - a Puzzle Game<br><br>Version 1.0.0<br><br>Used API - Banana (Licensed by <br> Marc Conard)<br><br>Developed by DiniK</div></html>");
+        aboutLabel.setFont(customFontRog);
+        aboutLabel.setOpaque(false);
+        aboutLabel.setHorizontalAlignment(SwingConstants.CENTER);
         aboutLabel.setVerticalAlignment(SwingConstants.CENTER);
+        aboutLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-        backButton = new JButton("Back");
-        backButton.addActionListener(e -> this.dispose());
+        backgroundLabel.add(aboutLabel, BorderLayout.CENTER);
 
-        setLayout(new BorderLayout());
-        add(aboutLabel, BorderLayout.CENTER);
-        add(backButton, BorderLayout.SOUTH);
+        ImageIcon buttonBackgroundIcon = new ImageIcon(getClass().getResource("/resources/button.png"));
+        backButton = createCustomButton("Back", buttonBackgroundIcon);
+        backButton.setHorizontalAlignment(SwingConstants.CENTER);
 
+        backButton.setBorder(BorderFactory.createEmptyBorder(10, 0, 30, 0));
+
+        backButton.addActionListener(e -> {
+            this.dispose();
+        });
+
+        backgroundLabel.add(backButton, BorderLayout.SOUTH);
+
+        setContentPane(backgroundLabel);
         setVisible(true);
+
+        JButton[] buttons = {backButton};
+        setButtonNavigation(buttons);
     }
 
-    public static void main(String[] args) {
-        new About(null);
+    private JButton createCustomButton(String text, ImageIcon backgroundIcon) {
+        JButton button = new JButton(text);
+        button.setIcon(backgroundIcon);
+        button.setHorizontalTextPosition(SwingConstants.CENTER);
+        button.setVerticalTextPosition(SwingConstants.CENTER);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setFont(customFontAgency);
+        addHoverEffect(button);
+        return button;
     }
+
+    private void addHoverEffect(JButton button) {
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            Color originalForeground = button.getForeground();
+
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                button.setForeground(Color.RED);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                if (!button.getModel().isPressed()) {
+                    button.setForeground(originalForeground);
+                }
+            }
+        });
+    }
+
+    /**Keyboard navigation method from chatGPT**/
+
+    private void setButtonNavigation(JButton[] buttons) {
+        selectedIndex = -1;
+
+        this.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (selectedIndex == -1) {
+                    selectedIndex = 0;
+                }
+                if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                    selectedIndex = (selectedIndex + 1) % buttons.length;
+                } else if (e.getKeyCode() == KeyEvent.VK_UP) {
+                    selectedIndex = (selectedIndex - 1 + buttons.length) % buttons.length;
+                } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    buttons[selectedIndex].doClick();
+                }
+                updateButtonFocus(selectedIndex, buttons);
+            }
+        });
+
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                if (selectedIndex == -1) {
+                    return;
+                }
+                updateButtonFocus(selectedIndex, buttons);
+            }
+        });
+
+        this.requestFocusInWindow();
+    }
+
+    private void updateButtonFocus(int index, JButton[] buttons) {
+        for (int i = 0; i < buttons.length; i++) {
+            JButton button = buttons[i];
+            if (i == index) {
+                button.setForeground(Color.RED);
+            } else {
+                button.setForeground(Color.BLACK);
+            }
+        }
+
+        this.revalidate();
+        this.repaint();
+    }
+
 }
