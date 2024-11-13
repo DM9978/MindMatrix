@@ -70,7 +70,8 @@ public class GameMenu extends JFrame implements ActionListener {
         } else if (e.getSource() == settingsButton) {
             JOptionPane.showMessageDialog(this, "Settings menu (Coming soon!)");
         } else if (e.getSource() == aboutButton) {
-            JOptionPane.showMessageDialog(this, "MindMatrix\nVersion 1.0");
+            About about = new About(this);
+            about.setVisible(true);
         }
         else if (e.getSource() == helpButton) {
             HelpMenu help = new HelpMenu(this);
