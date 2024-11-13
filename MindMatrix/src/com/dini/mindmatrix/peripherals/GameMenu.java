@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 public class GameMenu extends JFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
 
-    JButton startButton, settingsButton, aboutButton, loginButton;
+    JButton startButton, settingsButton, aboutButton, loginButton, helpButton;
     JLabel backgroundLabel;
     public GameMenu() {
         setSize(690, 500);
@@ -29,6 +29,7 @@ public class GameMenu extends JFrame implements ActionListener {
         settingsButton = new JButton("Settings");
         aboutButton = new JButton("About");
         loginButton = new JButton("Login");
+        helpButton = new JButton("Help");
 
         gbc.gridx = 0;
 
@@ -42,12 +43,18 @@ public class GameMenu extends JFrame implements ActionListener {
         backgroundLabel.add(settingsButton, gbc);
 
         gbc.gridy = 3;
+        backgroundLabel.add(helpButton, gbc);
+
+        gbc.gridy = 4;
         backgroundLabel.add(aboutButton, gbc);
+
+
 
         startButton.addActionListener(this);
         loginButton.addActionListener(this);
         settingsButton.addActionListener(this);
         aboutButton.addActionListener(this);
+        helpButton.addActionListener(this);
 
         setContentPane(backgroundLabel);
         setVisible(true);
@@ -60,11 +67,15 @@ public class GameMenu extends JFrame implements ActionListener {
             game.setVisible(true);
             this.dispose();
         } else if (e.getSource() == loginButton) {
-            this.dispose();
         } else if (e.getSource() == settingsButton) {
             JOptionPane.showMessageDialog(this, "Settings menu (Coming soon!)");
         } else if (e.getSource() == aboutButton) {
             JOptionPane.showMessageDialog(this, "MindMatrix\nVersion 1.0");
+        }
+        else if (e.getSource() == helpButton) {
+            HelpMenu help = new HelpMenu(this);
+            help.setVisible(true);
+            this.dispose();
         }
     }
 
