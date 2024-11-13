@@ -108,6 +108,9 @@ public class PlayerProfile extends JFrame {
 
         leaderboardButton.addActionListener(e -> {
             Point location = this.getLocation();
+            Leaderboard leaderboard = new Leaderboard();
+            leaderboard.setLocation(location);
+            leaderboard.setVisible(true);
         });
 
         backButton.addActionListener(e -> {
