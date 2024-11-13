@@ -13,6 +13,7 @@ public class GameMenu extends JFrame implements ActionListener {
     JButton startButton, settingsButton, aboutButton, loginButton, helpButton;
     JLabel backgroundLabel, logoLabel, profileIconLabel;
     Font customFont;
+    private JButton profileButton;
     private Point initialClick;
     private JButton[] menuButtons;
     private int currentIndex = -1;
@@ -51,16 +52,27 @@ public class GameMenu extends JFrame implements ActionListener {
         helpButton = createCustomButton("Help", buttonBackgroundIcon);
         aboutButton = createCustomButton("About", buttonBackgroundIcon);
         loginButton = createCustomButton("Login", buttonBackgroundIcon);
+        profileButton = createCustomButton("Profile", buttonBackgroundIcon);
 
         startButton.setBounds(240, 125, 200, 50);
         loginButton.setBounds(240, 185, 200, 50);
+        profileButton.setBounds(240, 185, 200, 50);
         settingsButton.setBounds(240, 245, 200, 50);
         helpButton.setBounds(240, 305, 200, 50);
         aboutButton.setBounds(240, 365, 200, 50);
 
+        profileButton.setVisible(Login.isLoggedIn);
+        loginButton.setVisible(!Login.isLoggedIn);
+        if (Login.isLoggedIn) {
+            menuButtons = new JButton[]{startButton, profileButton, settingsButton, helpButton, aboutButton};
+        } else {
+            menuButtons = new JButton[]{startButton, loginButton, settingsButton, helpButton, aboutButton};
+        }
+
         backgroundLabel.add(logoLabel);
         backgroundLabel.add(startButton);
         backgroundLabel.add(loginButton);
+        backgroundLabel.add(profileButton);
         backgroundLabel.add(settingsButton);
         backgroundLabel.add(helpButton);
         backgroundLabel.add(aboutButton);
@@ -69,6 +81,7 @@ public class GameMenu extends JFrame implements ActionListener {
 
         startButton.addActionListener(this);
         loginButton.addActionListener(this);
+        profileButton.addActionListener(this);
         settingsButton.addActionListener(this);
         helpButton.addActionListener(this);
         aboutButton.addActionListener(this);
@@ -103,14 +116,26 @@ public class GameMenu extends JFrame implements ActionListener {
             }
         });
 
+
         setFocusable(true);
         setVisible(true);
 
         addMouseHoverEffect(startButton);
         addMouseHoverEffect(loginButton);
+        addMouseHoverEffect(profileButton);
         addMouseHoverEffect(settingsButton);
         addMouseHoverEffect(helpButton);
         addMouseHoverEffect(aboutButton);
+    }
+
+    public void updateButtonVisibility() {
+        if (Login.isLoggedIn) {
+            loginButton.setVisible(false);
+            profileButton.setVisible(true);
+        } else {
+            loginButton.setVisible(true);
+            profileButton.setVisible(false);
+        }
     }
 
     private JButton createCustomButton(String text, ImageIcon backgroundIcon) {
@@ -171,17 +196,54 @@ public class GameMenu extends JFrame implements ActionListener {
         if (e.getSource() == startButton) {
             if (!startButtonClicked) {
                 startButtonClicked = true;
-                GameGUI game = new GameGUI();
-                game.setVisible(true);
-                this.dispose();
 
+                JWindow loadingWindow = createLoadingWindow();
+                loadingWindow.setVisible(true);
+
+                SwingWorker<GameGUI, Void> worker = new SwingWorker<GameGUI, Void>() {
+                    @Override
+                    protected GameGUI doInBackground() throws Exception {
+                        GameGUI game = new GameGUI();
+                        Point menuLocation = GameMenu.this.getLocation();
+                        game.setLocation(menuLocation);
+                        return game;
+                    }
+
+                    @Override
+                    protected void done() {
+                        try {
+                            GameGUI game = get();
+                            game.setVisible(true);
+                            loadingWindow.dispose();
+                            GameMenu.this.dispose();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        } finally {
+                            startButtonClicked = false;
+                        }
+                    }
+                };
+                worker.execute();
             }
 
         } else if (e.getSource() == loginButton) {
             if (!loginButtonClicked) {
                 loginButtonClicked = true;
                 Login login = new Login(this);
+                login.setVisible(true);
+                login.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        loginButtonClicked = false;
+                        updateButtonVisibility();
+                    }
+                });
             }
+
+        } else if (e.getSource() == profileButton) {
+            PlayerProfile profile = new PlayerProfile(this);
+            profile.setLocationRelativeTo(this);
+            profile.setVisible(true);
 
         } else if (e.getSource() == settingsButton) {
             if (!settingsButtonClicked) {
@@ -190,18 +252,76 @@ public class GameMenu extends JFrame implements ActionListener {
         } else if (e.getSource() == helpButton) {
             if (!helpButtonClicked) {
                 helpButtonClicked = true;
-                HelpMenu helpMenu = new HelpMenu(this);
+                HelpMenu help = new HelpMenu(this);
+                help.setVisible(true);
+                help.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        helpButtonClicked = false;
+                    }
+                });
                 this.dispose();
             }
         } else if (e.getSource() == aboutButton) {
             if (!aboutButtonClicked) {
                 aboutButtonClicked = true;
                 About about = new About(this);
-
+                about.setVisible(true);
+                about.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        aboutButtonClicked = false;
+                    }
+                });
             }
         }
     }
 
+
+    private JWindow createLoadingWindow() {
+        JWindow loadingWindow = new JWindow(this);
+        loadingWindow.setSize(680, 518);
+        loadingWindow.setLocationRelativeTo(this);
+        loadingWindow.setLayout(new BorderLayout());
+        loadingWindow.setBackground(new Color(0, 0, 0, 120));
+        loadingWindow.getRootPane().setOpaque(false);
+        loadingWindow.getContentPane().setBackground(new Color(0, 0, 0, 0));
+
+        Font agencyFont = null;
+        try {
+            InputStream fontStream = getClass().getResourceAsStream("/resources/sego.ttf");
+            agencyFont = Font.createFont(Font.TRUETYPE_FONT, fontStream).deriveFont(Font.BOLD, 18f);
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(agencyFont);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        JLabel loadingLabel = new JLabel("Starting MindMatrix");
+        loadingLabel.setFont(agencyFont);
+        loadingLabel.setForeground(Color.BLACK);
+        loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        loadingLabel.setVerticalAlignment(SwingConstants.TOP);
+        loadingLabel.setOpaque(false);
+        loadingLabel.setBorder(BorderFactory.createEmptyBorder(253, 0, 0, 0));
+        loadingWindow.add(loadingLabel, BorderLayout.CENTER);
+
+        Timer timer = new Timer(100, new ActionListener() {
+            int dotCount = 0;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                dotCount = (dotCount % 3) + 1;
+                StringBuilder loadingText = new StringBuilder("Starting MindMatrix");
+                for (int i = 0; i < dotCount; i++) {
+                    loadingText.append(".");
+                }
+                loadingLabel.setText(loadingText.toString());
+            }
+        });
+        timer.start();
+        return loadingWindow;
+    }
 
     private void resetHoverEffects() {
         JButton[] buttons = {startButton, loginButton, settingsButton, helpButton, aboutButton};
