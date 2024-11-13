@@ -67,6 +67,8 @@ public class GameMenu extends JFrame implements ActionListener {
             game.setVisible(true);
             this.dispose();
         } else if (e.getSource() == loginButton) {
+            Login login = new Login (this);
+            login.setVisible(true);
         } else if (e.getSource() == settingsButton) {
             JOptionPane.showMessageDialog(this, "Settings menu (Coming soon!)");
         } else if (e.getSource() == aboutButton) {
