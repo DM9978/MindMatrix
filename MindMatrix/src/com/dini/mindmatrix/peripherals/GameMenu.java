@@ -11,7 +11,7 @@ public class GameMenu extends JFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
 
     JButton startButton, settingsButton, aboutButton, loginButton, helpButton;
-    JLabel backgroundLabel, logoLabel, profileIconLabel;
+    JLabel backgroundLabel, logoLabel;
     Font customFont;
     private JButton profileButton;
     private Point initialClick;

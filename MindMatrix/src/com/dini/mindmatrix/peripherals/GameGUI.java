@@ -10,7 +10,7 @@ import java.io.InputStream;
 import java.util.Timer;
 import java.util.TimerTask;
 
-/**Base code from HeartGame by Mark Conard**/
+/**Base code from TomatoGame by Mark Conard**/
 
 public class GameGUI extends JFrame implements ActionListener {
 
@@ -164,6 +164,7 @@ public class GameGUI extends JFrame implements ActionListener {
 
 	private void advanceLevel() {
 		level++;
+		levelLabel.setText("Level: " + level);
 	}
 
 
