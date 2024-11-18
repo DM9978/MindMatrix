@@ -16,7 +16,7 @@ public class About extends JFrame {
 
     public About(Component parent) {
         setTitle("About");
-        setSize(320, 380);
+        setSize(320, 420);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setResizable(false);
@@ -40,6 +40,12 @@ public class About extends JFrame {
         ImageIcon backgroundIcon = new ImageIcon(getClass().getResource("/resources/bg.png"));
         backgroundLabel = new JLabel(backgroundIcon);
         backgroundLabel.setLayout(new BorderLayout());
+
+        ImageIcon rrIcon = new ImageIcon(getClass().getResource("/resources/rr1.png"));
+        JLabel rrLabel = new JLabel(rrIcon);
+        rrLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        rrLabel.setBorder(BorderFactory.createEmptyBorder(35, 0, 0, 0));
+        backgroundLabel.add(rrLabel, BorderLayout.NORTH);
 
         aboutLabel = new JLabel("<html><div style='text-align: center;'>Mind Matrix - a Puzzle Game<br><br>Version 1.0.0<br><br>Used API - Banana (Licensed by <br> Marc Conard)<br><br>Developed by DiniK</div></html>");
         aboutLabel.setFont(customFontRog);
@@ -150,4 +156,3 @@ public class About extends JFrame {
     }
 
 }
-
