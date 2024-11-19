@@ -11,7 +11,7 @@ public class GameMenu extends JFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
 
     JButton startButton, settingsButton, aboutButton, loginButton, helpButton;
-    JLabel backgroundLabel, logoLabel;
+    JLabel backgroundLabel, logoLabel, profileIconLabel;
     Font customFont;
     private JButton profileButton;
     private Point initialClick;
@@ -116,6 +116,7 @@ public class GameMenu extends JFrame implements ActionListener {
             }
         });
 
+        AudioManager.getInstance();
 
         setFocusable(true);
         setVisible(true);
@@ -154,6 +155,7 @@ public class GameMenu extends JFrame implements ActionListener {
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
+                AudioManager.getInstance().playHoverSound();
                 button.setForeground(Color.RED);
                 button.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
             }
@@ -166,6 +168,7 @@ public class GameMenu extends JFrame implements ActionListener {
 
             @Override
             public void mouseClicked(MouseEvent e) {
+                AudioManager.getInstance().playClickSound();
             }
         });
     }
@@ -176,6 +179,7 @@ public class GameMenu extends JFrame implements ActionListener {
             if (i == index) {
                 button.setForeground(Color.RED);
                 button.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                AudioManager.getInstance().playHoverSound();
             } else {
                 button.setForeground(Color.BLACK);
                 button.setBorder(null);
@@ -192,38 +196,74 @@ public class GameMenu extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         resetHoverEffects();
+        AudioManager.getInstance().playClickSound();
 
         if (e.getSource() == startButton) {
-            if (!startButtonClicked) {
-                startButtonClicked = true;
+            if (Login.isLoggedIn) {
+                if (!startButtonClicked) {
+                    startButtonClicked = true;
 
-                JWindow loadingWindow = createLoadingWindow();
-                loadingWindow.setVisible(true);
+                    JWindow loadingWindow = createLoadingWindow();
+                    loadingWindow.setVisible(true);
 
-                SwingWorker<GameGUI, Void> worker = new SwingWorker<GameGUI, Void>() {
+                    SwingWorker<GameGUI, Void> worker = new SwingWorker<GameGUI, Void>() {
+                        @Override
+                        protected GameGUI doInBackground() throws Exception {
+                            GameGUI game = new GameGUI();
+                            Point menuLocation = GameMenu.this.getLocation();
+                            game.setLocation(menuLocation);
+                            return game;
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                GameGUI game = get();
+                                game.setVisible(true);
+                                loadingWindow.dispose();
+                                GameMenu.this.dispose();
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            } finally {
+                                startButtonClicked = false;
+                            }
+                        }
+                    };
+                    worker.execute();
+                }
+            } else {
+                JLabel customMessage = new JLabel("Please Login First!", SwingConstants.CENTER);
+                customMessage.setBorder(BorderFactory.createEmptyBorder(0, -43, 0, 0));
+                JOptionPane message = new JOptionPane(customMessage, JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
+                JDialog dialog = message.createDialog(this, "Login Required");
+                dialog.setModal(false);
+                dialog.setVisible(true);
+
+
+
+                Timer timer = new Timer(800, new ActionListener() {
                     @Override
-                    protected GameGUI doInBackground() throws Exception {
-                        GameGUI game = new GameGUI();
-                        Point menuLocation = GameMenu.this.getLocation();
-                        game.setLocation(menuLocation);
-                        return game;
-                    }
+                    public void actionPerformed(ActionEvent e) {
+                        dialog.dispose();
 
-                    @Override
-                    protected void done() {
-                        try {
-                            GameGUI game = get();
-                            game.setVisible(true);
-                            loadingWindow.dispose();
-                            GameMenu.this.dispose();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        } finally {
-                            startButtonClicked = false;
+                        if (!loginButtonClicked) {
+                            loginButtonClicked = true;
+                            SwingUtilities.invokeLater(() -> {
+                                Login login = new Login(GameMenu.this);
+                                login.setVisible(true);
+                                login.addWindowListener(new WindowAdapter() {
+                                    @Override
+                                    public void windowClosed(WindowEvent e) {
+                                        loginButtonClicked = false;
+                                        updateButtonVisibility();
+                                    }
+                                });
+                            });
                         }
                     }
-                };
-                worker.execute();
+                });
+                timer.setRepeats(false);
+                timer.start();
             }
 
         } else if (e.getSource() == loginButton) {
@@ -244,10 +284,20 @@ public class GameMenu extends JFrame implements ActionListener {
             PlayerProfile profile = new PlayerProfile(this);
             profile.setLocationRelativeTo(this);
             profile.setVisible(true);
+            AudioManager.getInstance().playClickSound();
 
         } else if (e.getSource() == settingsButton) {
             if (!settingsButtonClicked) {
                 settingsButtonClicked = true;
+                SettingsMenu settings = new SettingsMenu(this);
+                settings.setVisible(true);
+                settings.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        settingsButtonClicked = false;
+                    }
+                });
+                this.dispose();
             }
         } else if (e.getSource() == helpButton) {
             if (!helpButtonClicked) {
@@ -283,6 +333,7 @@ public class GameMenu extends JFrame implements ActionListener {
         loadingWindow.setSize(680, 518);
         loadingWindow.setLocationRelativeTo(this);
         loadingWindow.setLayout(new BorderLayout());
+        AudioManager.getInstance().playClickSound();
         loadingWindow.setBackground(new Color(0, 0, 0, 120));
         loadingWindow.getRootPane().setOpaque(false);
         loadingWindow.getContentPane().setBackground(new Color(0, 0, 0, 0));
