@@ -121,6 +121,7 @@ public class PauseMenu extends JDialog implements ActionListener {
             @Override
             public void mouseEntered(MouseEvent e) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
                 button.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
             }
 
@@ -138,6 +139,7 @@ public class PauseMenu extends JDialog implements ActionListener {
             if (i == index) {
                 button.setForeground(Color.RED);
                 button.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                AudioManager.getInstance().playHoverSound();
             } else {
                 button.setForeground(Color.BLACK);
                 button.setBorder(null);
@@ -147,9 +149,11 @@ public class PauseMenu extends JDialog implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        AudioManager.getInstance().playClickSound();
         String actionCommand = e.getActionCommand();
         switch (actionCommand) {
             case "Resume":
+                gameGUI.resumeGame();
                 dispose();
                 break;
             case "Exit":
