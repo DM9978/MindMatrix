@@ -20,6 +20,10 @@ public class Login extends JFrame {
     public static int loggedInUserId;
     public static String loggedInUsername;
 
+    private int currentIndex = -1;
+    private boolean navigationStarted = false;
+    private JButton[] menuButtons;
+
     public Login(JFrame parent) {
         setTitle("Login");
         setSize(340, 460);
@@ -71,41 +75,80 @@ public class Login extends JFrame {
         signupButton = createCustomButton("Signup", new ImageIcon(getClass().getResource("/resources/button4.png")));
         backButton = createCustomButton("Back", new ImageIcon(getClass().getResource("/resources/button.png")));
 
-        signupButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new SignUp(Login.this);
+        signupButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
+            new SignUp(Login.this);
+        });
+
+        loginButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
+            String username = usernameField.getText();
+            char[] password = passwordField.getPassword();
+            String passwordStr = new String(password);
+
+            if (authenticateUser(username, passwordStr)) {
+                isLoggedIn = true;
+                JOptionPane.showMessageDialog(Login.this, "Login Successful!");
+                dispose();
+                Point location = parent.getLocation();
+                parent.dispose();
+                GameMenu newGameMenu = new GameMenu();
+                newGameMenu.setLocation(location);
+                newGameMenu.setSize(parent.getSize());
+                newGameMenu.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(Login.this, "Invalid username or password.");
             }
         });
 
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText();
-                char[] password = passwordField.getPassword();
-                String passwordStr = new String(password);
+        backButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
+            dispose();
+            Point location = parent.getLocation();
+            parent.dispose();
+            GameMenu newGameMenu = new GameMenu();
+            newGameMenu.setLocation(location);
+            newGameMenu.setSize(parent.getSize());
+            newGameMenu.setVisible(true);
+        });
 
-                if (authenticateUser(username, passwordStr)) {
-                    isLoggedIn = true;
-                    JOptionPane.showMessageDialog(Login.this, "Login Successful!");
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(Login.this, "Invalid username or password.");
+
+        /** Keyboard navigation method from chatGPT**/
+
+        menuButtons = new JButton[]{loginButton, signupButton, backButton};
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int keyCode = e.getKeyCode();
+
+                if (keyCode == KeyEvent.VK_DOWN) {
+                    if (!navigationStarted) {
+                        navigationStarted = true;
+                        currentIndex = 0;
+                    } else {
+                        currentIndex = (currentIndex + 1) % menuButtons.length;
+                    }
+                    updateButtonFocus(currentIndex);
+                } else if (keyCode == KeyEvent.VK_UP) {
+                    if (!navigationStarted) {
+                        navigationStarted = true;
+                        currentIndex = 0;
+                    } else {
+                        currentIndex = (currentIndex - 1 + menuButtons.length) % menuButtons.length;
+                    }
+                    updateButtonFocus(currentIndex);
+                } else if (keyCode == KeyEvent.VK_ENTER && navigationStarted) {
+                    menuButtons[currentIndex].doClick();
                 }
             }
         });
 
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-                parent.setVisible(true);
-            }
-        });
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
 
 
-        /**Grid layout is from chatGPT**/
 
+        /** Grid layout setup from chatGPT**/
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 10, 5, 10);
 
@@ -150,6 +193,17 @@ public class Login extends JFrame {
         setVisible(true);
     }
 
+    private void updateButtonFocus(int index) {
+        for (int i = 0; i < menuButtons.length; i++) {
+            JButton button = menuButtons[i];
+            if (i == index) {
+                button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
+            } else {
+                button.setForeground(Color.BLACK);
+            }
+        }
+    }
 
     private void togglePasswordVisibility() {
         if (showPasswordCheckBox.isSelected()) {
@@ -158,7 +212,6 @@ public class Login extends JFrame {
             passwordField.setEchoChar('•');
         }
     }
-
 
     private boolean authenticateUser(String username, String password) {
         try {
@@ -192,7 +245,6 @@ public class Login extends JFrame {
         return false;
     }
 
-
     private JButton createCustomButton(String text, ImageIcon backgroundIcon) {
         JButton button = new JButton(text);
         button.setIcon(backgroundIcon);
@@ -213,6 +265,7 @@ public class Login extends JFrame {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
             }
 
             @Override
