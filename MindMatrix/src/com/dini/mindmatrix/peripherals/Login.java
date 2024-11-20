@@ -223,7 +223,7 @@ public class Login extends JFrame {
 
             Connection conn = DriverManager.getConnection(url, dbUsername, dbPassword);
 
-            String query = "SELECT password, player_id FROM users WHERE username = ?";
+            String query = "SELECT password, player_id FROM users WHERE BINARY username = ?";
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setString(1, username);
 
