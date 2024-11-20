@@ -5,12 +5,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Vector;
 
 public class Leaderboard extends JFrame {
@@ -23,6 +22,10 @@ public class Leaderboard extends JFrame {
     private Font customFontRog;
     private int loggedInUserId;
     private Image backgroundImage;
+
+    private int currentIndex = -1;
+    private boolean navigationStarted = false;
+    private JButton[] menuButtons;
 
     public Leaderboard() {
         setTitle("Leaderboard");
@@ -85,13 +88,37 @@ public class Leaderboard extends JFrame {
         backButton.setHorizontalAlignment(SwingConstants.CENTER);
 
         backButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
             this.dispose();
         });
+
+        menuButtons = new JButton[]{backButton};
 
         backgroundPanel.add(scrollPane);
         backgroundPanel.add(currentPlayerLabel);
         backgroundPanel.add(backButton);
         populateLeaderboard(tableModel);
+
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int keyCode = e.getKeyCode();
+
+                if (keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_UP) {
+                    if (!navigationStarted) {
+                        navigationStarted = true;
+                        currentIndex = 0;
+                    }
+                    updateButtonFocus(currentIndex);
+                } else if (keyCode == KeyEvent.VK_ENTER && navigationStarted) {
+                    menuButtons[currentIndex].doClick();
+                }
+            }
+        });
+
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
+
         setVisible(true);
     }
 
@@ -109,6 +136,20 @@ public class Leaderboard extends JFrame {
         return button;
     }
 
+    private void updateButtonFocus(int index) {
+        for (int i = 0; i < menuButtons.length; i++) {
+            JButton button = menuButtons[i];
+            if (i == index) {
+                button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
+
+            } else {
+                button.setForeground(Color.BLACK);
+                button.setBorder(null);
+            }
+        }
+    }
+
     private void addHoverEffect(JButton button) {
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             Color originalForeground = button.getForeground();
@@ -116,6 +157,7 @@ public class Leaderboard extends JFrame {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
             }
 
             @Override
@@ -140,7 +182,7 @@ public class Leaderboard extends JFrame {
             if (row == 0) {
                 c.setBackground(new Color(255, 226, 124));
             } else if (usernameInRow.equals(loggedInUsername)) {
-                c.setBackground(new Color(190, 244, 255));
+                c.setBackground(new Color(177, 239, 251));
             } else if (row % 2 == 0) {
                 c.setBackground(new Color(236, 236, 251));
             } else {

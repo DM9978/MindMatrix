@@ -14,7 +14,7 @@ public class About extends JFrame {
     private Font customFontAgency;
     private int selectedIndex = -1;
 
-    public About(Component parent) {
+    public About(JFrame parent) {
         setTitle("About");
         setSize(320, 420);
         setLocationRelativeTo(parent);
@@ -63,6 +63,13 @@ public class About extends JFrame {
         backButton.setBorder(BorderFactory.createEmptyBorder(10, 0, 30, 0));
 
         backButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
+            Point location = parent.getLocation();
+            parent.dispose();
+            GameMenu newGameMenu = new GameMenu();
+            newGameMenu.setLocation(location);
+            newGameMenu.setSize(parent.getSize());
+            newGameMenu.setVisible(true);
             this.dispose();
         });
 
@@ -95,6 +102,7 @@ public class About extends JFrame {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
             }
 
             @Override
@@ -146,6 +154,7 @@ public class About extends JFrame {
             JButton button = buttons[i];
             if (i == index) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
             } else {
                 button.setForeground(Color.BLACK);
             }

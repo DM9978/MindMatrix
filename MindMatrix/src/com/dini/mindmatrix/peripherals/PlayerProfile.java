@@ -2,7 +2,10 @@ package com.dini.mindmatrix.peripherals;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,8 +16,12 @@ public class PlayerProfile extends JFrame {
     private JLabel highestScoreLabel;
     private JButton logoutButton;
     private JButton leaderboardButton;
-    private Font customFontAgency, customFontMai, customFontRog;
     private JButton backButton;
+    private Font customFontAgency, customFontMai, customFontRog;
+
+    private int currentIndex = -1;
+    private boolean navigationStarted = false;
+    private JButton[] menuButtons;
 
     public PlayerProfile(JFrame parent) {
         String loggedInUserId = String.valueOf(Login.loggedInUserId);
@@ -90,12 +97,44 @@ public class PlayerProfile extends JFrame {
         backgroundPanel.add(buttonPanel);
         setContentPane(backgroundPanel);
 
+        menuButtons = new JButton[]{logoutButton, leaderboardButton, backButton};
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int keyCode = e.getKeyCode();
+
+                if (keyCode == KeyEvent.VK_DOWN) {
+                    if (!navigationStarted) {
+                        navigationStarted = true;
+                        currentIndex = 0;
+                    } else {
+                        currentIndex = (currentIndex + 1) % menuButtons.length;
+                    }
+                    updateButtonFocus(currentIndex);
+                } else if (keyCode == KeyEvent.VK_UP) {
+                    if (!navigationStarted) {
+                        navigationStarted = true;
+                        currentIndex = 0;
+                    } else {
+                        currentIndex = (currentIndex - 1 + menuButtons.length) % menuButtons.length;
+                    }
+                    updateButtonFocus(currentIndex);
+                } else if (keyCode == KeyEvent.VK_ENTER && navigationStarted) {
+                    menuButtons[currentIndex].doClick();
+                }
+            }
+        });
+
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
+
         fetchPlayerData(loggedInUserId, playerNameValue, playerIdValue, highestScoreValue);
 
         setVisible(true);
 
         logoutButton.addActionListener(e -> {
             Login.isLoggedIn = false;
+            AudioManager.getInstance().playClickSound();
             JOptionPane.showMessageDialog(this, "You have been logged out.");
             dispose();
             Point location = parent.getLocation();
@@ -107,15 +146,36 @@ public class PlayerProfile extends JFrame {
         });
 
         leaderboardButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
             Point location = this.getLocation();
             Leaderboard leaderboard = new Leaderboard();
             leaderboard.setLocation(location);
             leaderboard.setVisible(true);
+            AudioManager.getInstance().playClickSound();
         });
 
         backButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
             dispose();
+            Point location = parent.getLocation();
+            parent.dispose();
+            GameMenu newGameMenu = new GameMenu();
+            newGameMenu.setLocation(location);
+            newGameMenu.setSize(parent.getSize());
+            newGameMenu.setVisible(true);
         });
+    }
+
+    private void updateButtonFocus(int index) {
+        for (int i = 0; i < menuButtons.length; i++) {
+            JButton button = menuButtons[i];
+            if (i == index) {
+                button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
+            } else {
+                button.setForeground(Color.BLACK);
+            }
+        }
     }
 
     private JPanel createPanelWithLabelAndValue(JLabel label, JLabel value) {
@@ -207,6 +267,7 @@ public class PlayerProfile extends JFrame {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
             }
 
             @Override

@@ -68,7 +68,7 @@ public class HelpMenu extends JFrame {
             doc.insertString(doc.getLength(), "Welcome to Mind Matrix, a mathematical puzzle game that challenges your problem-solving skills!\n\n", paragraphStyle);
 
             doc.insertString(doc.getLength(), "How to Play?\n", headingStyle);
-            doc.insertString(doc.getLength(), "The game consists of six equations arranged vertically and horizontally. Each equation may involve addition, subtraction, multiplication, or division. Your goal is to find the missing digit, represented by a banana icon (\uD83C\uDF4C).\n\n", paragraphStyle);
+            doc.insertString(doc.getLength(), "The game consists of six equations arranged vertically and horizontally. Each equation may involve addition, subtraction, multiplication, or division. Your goal is to find the missing digit, represented by either a thinking emoji (\uD83E\uDD14), a banana icon (\uD83C\uDF4C) or a tomato icon (\uD83C\uDF45).\n\n", paragraphStyle);
 
             doc.insertString(doc.getLength(), "Rules:\n", headingStyle);
             doc.insertString(doc.getLength(), "You have 5 lives. Each incorrect answer will cost you one life. The time limit for each game decreases as you advance to harder levels.\n\n", paragraphStyle);
@@ -93,6 +93,7 @@ public class HelpMenu extends JFrame {
 
         backButton.addActionListener(e -> {
             gameMenu.setVisible(true);
+            AudioManager.getInstance().playClickSound();
             this.dispose();
         });
         addKeyListener(new KeyAdapter() {
@@ -135,6 +136,7 @@ public class HelpMenu extends JFrame {
             if (i == index) {
                 button.setForeground(Color.RED);
                 button.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
+                AudioManager.getInstance().playHoverSound();
             } else {
                 button.setForeground(Color.BLACK);
                 button.setBorder(null);
@@ -166,6 +168,7 @@ public class HelpMenu extends JFrame {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
                 button.setBorder(BorderFactory.createLineBorder(Color.RED, 2));
             }
 

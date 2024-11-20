@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,7 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
+import java.util.regex.Pattern;
 
 public class SignUp extends JFrame {
 
@@ -21,6 +23,10 @@ public class SignUp extends JFrame {
     private JButton signupButton, backButton;
     private Font customFontAgency, customFontRog;
     private JLabel backgroundLabel;
+
+    private int currentIndex = -1;
+    private boolean navigationStarted = false;
+    private JButton[] menuButtons;
 
     public SignUp(JFrame parent) {
         setTitle("Sign Up");
@@ -57,9 +63,13 @@ public class SignUp extends JFrame {
 
         usernameField = new JTextField(15);
         emailField = new JTextField(15);
+        emailField.setInputVerifier(new EmailVerifier(this));
+
         passwordField = new JPasswordField(15);
         confirmPasswordField = new JPasswordField(15);
         ageField = new JTextField(5);
+        ageField.setInputVerifier(new NumberVerifier(this));
+
         genderComboBox = new JComboBox<>(new String[]{"Male", "Female"});
 
         JLabel usernameLabel = createLabel("Username:");
@@ -71,9 +81,6 @@ public class SignUp extends JFrame {
 
         signupButton = createCustomButton("Sign Up", new ImageIcon(getClass().getResource("/resources/button4.png")));
         backButton = createCustomButton("Back", new ImageIcon(getClass().getResource("/resources/button.png")));
-
-
-        /**Grid layout from chatGPT**/
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -110,50 +117,91 @@ public class SignUp extends JFrame {
         gbc.gridy = 6;
         mainPanel.add(buttonPanel, gbc);
 
-
-        signupButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText();
-                String email = emailField.getText();
-                String password = new String(passwordField.getPassword());
-                String confirmPassword = new String(confirmPasswordField.getPassword());
-                String age = ageField.getText();
-                String gender = (String) genderComboBox.getSelectedItem();
-
-                if (!password.equals(confirmPassword)) {
-                    JOptionPane.showMessageDialog(SignUp.this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-
-                String hashedPassword = PasswordUtils.hashPassword(password);
-
-                if (insertUserIntoDatabase(username, email, hashedPassword, age, gender)) {
-                    JOptionPane.showMessageDialog(SignUp.this, "Signup successful! Please Login.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(SignUp.this, "Username or Email already exists. Try again.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
-
-
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-
         backgroundLabel.add(mainPanel, BorderLayout.CENTER);
+
+        menuButtons = new JButton[]{signupButton, backButton};
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int keyCode = e.getKeyCode();
+
+                if (keyCode == KeyEvent.VK_DOWN) {
+                    if (!navigationStarted) {
+                        navigationStarted = true;
+                        currentIndex = 0;
+                    } else {
+                        currentIndex = (currentIndex + 1) % menuButtons.length;
+                    }
+                    updateButtonFocus(currentIndex);
+                } else if (keyCode == KeyEvent.VK_UP) {
+                    if (!navigationStarted) {
+                        navigationStarted = true;
+                        currentIndex = 0;
+                    } else {
+                        currentIndex = (currentIndex - 1 + menuButtons.length) % menuButtons.length;
+                    }
+                    updateButtonFocus(currentIndex);
+                } else if (keyCode == KeyEvent.VK_ENTER && navigationStarted) {
+                    menuButtons[currentIndex].doClick();
+                }
+            }
+        });
+
+        setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
+
+        signupButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
+            String username = usernameField.getText().trim();
+            String email = emailField.getText().trim();
+            String password = new String(passwordField.getPassword()).trim();
+            String confirmPassword = new String(confirmPasswordField.getPassword()).trim();
+            String age = ageField.getText().trim();
+            String gender = (String) genderComboBox.getSelectedItem();
+
+            if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || age.isEmpty() || gender == null) {
+                JOptionPane.showMessageDialog(SignUp.this, "Please fill all the fields!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (!password.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(SignUp.this, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String hashedPassword = PasswordUtils.hashPassword(password);
+
+            if (insertUserIntoDatabase(username, email, hashedPassword, age, gender)) {
+                JOptionPane.showMessageDialog(SignUp.this, "Signup successful! Please Login.", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(SignUp.this, "Username or Email already exists. Try again.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+
+        backButton.addActionListener(e -> {
+            AudioManager.getInstance().playClickSound();
+            dispose();
+        });
 
         setContentPane(backgroundLabel);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setVisible(true);
     }
 
-    public class PasswordUtils {
-
+    private void updateButtonFocus(int index) {
+        for (int i = 0; i < menuButtons.length; i++) {
+            JButton button = menuButtons[i];
+            if (i == index) {
+                button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
+            } else {
+                button.setForeground(Color.BLACK);
+            }
+        }
+    }
+    public static class PasswordUtils {
         public static String hashPassword(String password) {
             try {
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -168,7 +216,6 @@ public class SignUp extends JFrame {
                 throw new RuntimeException("Error hashing password", e);
             }
         }
-
     }
 
     private JLabel createLabel(String text) {
@@ -198,6 +245,7 @@ public class SignUp extends JFrame {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
                 button.setForeground(Color.RED);
+                AudioManager.getInstance().playHoverSound();
             }
 
             @Override
@@ -206,9 +254,6 @@ public class SignUp extends JFrame {
             }
         });
     }
-
-
-    /**Grid layout from chatGPT**/
 
     private void addLabelAndField(JPanel panel, GridBagConstraints gbc, JLabel label, JComponent field, int row, int col) {
         gbc.gridx = col * 2;
@@ -222,8 +267,6 @@ public class SignUp extends JFrame {
         gbc.gridy = row * 2 + 1;
         panel.add(field, gbc);
     }
-
-
 
     private boolean insertUserIntoDatabase(String username, String email, String password, String age, String gender) {
         Connection conn = null;
@@ -264,8 +307,47 @@ public class SignUp extends JFrame {
         return success;
     }
 
+    private static class EmailVerifier extends InputVerifier {
+        private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+.[A-Za-z0-9.-]+$");
+        private final Component parent;
+
+        public EmailVerifier(Component parent) {
+            this.parent = parent;
+        }
+
+        @Override
+        public boolean verify(JComponent input) {
+            String text = ((JTextField) input).getText();
+            if (!EMAIL_PATTERN.matcher(text).matches()) {
+                JOptionPane.showMessageDialog(parent, "Please enter a valid email address!", "Invalid Email", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    private static class NumberVerifier extends InputVerifier {
+        private final Component parent;
+
+        public NumberVerifier(Component parent) {
+            this.parent = parent;
+        }
+
+        @Override
+        public boolean verify(JComponent input) {
+            String text = ((JTextField) input).getText();
+            try {
+                Integer.parseInt(text);
+                return true;
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(parent, "Age must be a number!", "Invalid Age", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        }
+    }
+
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new SignUp(null));
     }
 }
-
