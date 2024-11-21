@@ -59,12 +59,12 @@ public class AudioManager {
     }
 
     public void playHoverSound() {
-        if (!isSFXOn) return;
+        if (!isSFXOn || isWrongSoundPlaying) return;
 
         try {
             Clip clip = sfxClips.get("hover");
             if (clip == null) {
-                System.err.println("Hover not found.");
+                System.err.println("Hover sound not found.");
                 return;
             }
             if (clip.isRunning()) {
@@ -77,11 +77,50 @@ public class AudioManager {
             volumeControl.setValue(db);
 
             clip.start();
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
+
+
+    private boolean isWrongSoundPlaying = false;
+
+
+    public void playWrongSound() {
+        if (!isSFXOn) return;
+
+        try {
+            isWrongSoundPlaying = true;
+
+            Clip clip = sfxClips.get("wrong");
+            if (clip == null) {
+                System.err.println("Wrong sound not found.");
+                return;
+            }
+            if (clip.isRunning()) {
+                clip.stop();
+            }
+            clip.setFramePosition(0);
+
+            FloatControl volumeControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            float db = (float) (Math.log(sfxVolume) / Math.log(10) * 20);
+            volumeControl.setValue(db);
+
+            clip.start();
+            clip.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP) {
+                    isWrongSoundPlaying = false;
+                    clip.setFramePosition(0);
+                }
+            });
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            isWrongSoundPlaying = false;
+        }
+    }
+
+
 
 
     void playSound(String soundKey) {
@@ -106,6 +145,7 @@ public class AudioManager {
     }
 
     private void preloadSFX() {
+        preloadSound("wrong", "/resources/wr.wav");
         preloadSound("click", "/resources/ww.wav");
         preloadSound("hover", "/resources/hover.wav");
         preloadSound("over", "/resources/over.wav");

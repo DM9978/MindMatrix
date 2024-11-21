@@ -1,5 +1,3 @@
-/**Slightly modified TomatoGame code**/
-
 package com.dini.mindmatrix.engine;
 
 import java.awt.image.BufferedImage;
@@ -13,7 +11,7 @@ import java.util.Base64;
 import javax.imageio.ImageIO;
 
 /**
- * Game that interfaces to an external Server to retrieve a game.
+ * Game that interfaces to external Servers to retrieve games.
  * A game consists of an image and an integer that denotes the solution of this game.
  *
  * @author Marc Conrad
@@ -21,18 +19,22 @@ import javax.imageio.ImageIO;
  */
 public class GameServer {
 
-	/**
-	 * Basic utility method to read string for URL.
-	 */
+	private int currentApiIndex = 0;
 
+	private static final String[] API_URLS = {
+			"https://marcconrad.com/uob/banana/api.php?out=csv&base64=yes",
+			"https://marcconrad.com/uob/tomato/api.php?out=csv&base64=yes",
+			"https://marcconrad.com/uob/smile/api.php?out=csv&base64=yes"
+	};
+
+	/**
+	 * Basic utility method to read string from URL.
+	 */
 	private static String readUrl(String urlString)  {
 		try {
 			URL url = new URL(urlString);
 			InputStream inputStream = url.openStream();
 
-			//c Choose anyone of
-			// https://stackoverflow.com/questions/309424/how-do-i-read-convert-an-inputstream-into-a-string-in-java
-			// to convert InputStream to String.
 			ByteArrayOutputStream result = new ByteArrayOutputStream();
 			byte[] buffer = new byte[1024];
 			int length;
@@ -41,23 +43,19 @@ public class GameServer {
 			}
 			return result.toString("UTF-8");
 		} catch (Exception e) {
-			/* To do: proper exception handling when URL cannot be read. */
-			System.out.println("An Error occured: " + e.toString());
+			System.out.println("An error occurred: " + e.toString());
 			e.printStackTrace();
 			return null;
 		}
-
 	}
 
 	/**
-	 * Retrieves a random game from the web site.
+	 * Retrieves the next game from the current API in the cycle.
 	 * @return a random game or null if a game cannot be found.
 	 */
 	public Game getRandomGame() {
-		// See http://marconrad.com/uob/banana for details of usage of the api.
-
-		String tomatoapi = "https://marcconrad.com/uob/banana/api.php?out=csv&base64=yes";
-		String dataraw = readUrl(tomatoapi);
+		String currentApi = API_URLS[currentApiIndex];
+		String dataraw = readUrl(currentApi);
 		String[] data = dataraw.split(",");
 
 		byte[] decodeImg = Base64.getDecoder().decode(data[0]);
@@ -68,12 +66,14 @@ public class GameServer {
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(quest);
-			return new Game(img, solution);
+			Game game = new Game(img, solution);
+
+			currentApiIndex = (currentApiIndex + 1) % API_URLS.length;
+
+			return game;
 		} catch (IOException e1) {
-			// TODO Add proper exception handling.
 			e1.printStackTrace();
 			return null;
 		}
 	}
-
 }

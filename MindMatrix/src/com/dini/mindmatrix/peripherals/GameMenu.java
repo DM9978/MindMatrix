@@ -11,8 +11,8 @@ public class GameMenu extends JFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
 
     JButton startButton, settingsButton, aboutButton, loginButton, helpButton;
-    JLabel backgroundLabel, logoLabel, profileIconLabel;
-    Font customFont;
+    JLabel backgroundLabel, logoLabel;
+    Font customFont, customFontAgency;
     private JButton profileButton;
     private Point initialClick;
     private JButton[] menuButtons;
@@ -30,10 +30,15 @@ public class GameMenu extends JFrame implements ActionListener {
         setIconImage(icon.getImage());
 
         try {
-            InputStream is = getClass().getResourceAsStream("/resources/rog.otf");
-            customFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(14f);
+            InputStream isRog = getClass().getResourceAsStream("/resources/rog.otf");
+            customFont = Font.createFont(Font.TRUETYPE_FONT, isRog).deriveFont(Font.BOLD, 14f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(customFont);
+
+            InputStream isAgency = getClass().getResourceAsStream("/resources/eras.TTF");
+            customFontAgency = Font.createFont(Font.TRUETYPE_FONT, isAgency).deriveFont(Font.BOLD,20f);
+            ge.registerFont(customFontAgency);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -232,14 +237,37 @@ public class GameMenu extends JFrame implements ActionListener {
                     worker.execute();
                 }
             } else {
+                JWindow overlay = new JWindow();
+                overlay.setLocation(GameMenu.this.getLocation());
+                overlay.setLayout(null);
+                overlay.setBackground(new Color(57, 57, 57, 74));
+                overlay.setSize(getSize(GameMenu.this.getSize()));
+                overlay.setVisible(true);
+
+                JDialog dialog = new JDialog((Frame) null, "Login Required", false);
+                dialog.setUndecorated(true);
+                dialog.setLayout(new BorderLayout());
+
+                dialog.getContentPane().setBackground(new Color(246, 246, 246, 255));
                 JLabel customMessage = new JLabel("Please Login First!", SwingConstants.CENTER);
-                customMessage.setBorder(BorderFactory.createEmptyBorder(0, -43, 0, 0));
-                JOptionPane message = new JOptionPane(customMessage, JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION, null, new Object[]{}, null);
-                JDialog dialog = message.createDialog(this, "Login Required");
-                dialog.setModal(false);
+                customMessage.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+                customMessage.setFont(customFontAgency);
+                dialog.add(customMessage, BorderLayout.CENTER);
+
+                dialog.getRootPane().setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(197, 2, 2, 187), 3),
+                        BorderFactory.createEmptyBorder(0, 0, 0, 0)
+                ));
+
+                dialog.setSize(240, 60);
+                dialog.setLocationRelativeTo(GameMenu.this);
                 dialog.setVisible(true);
-
-
+                dialog.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosed(WindowEvent e) {
+                        overlay.dispose();
+                    }
+                });
 
                 Timer timer = new Timer(800, new ActionListener() {
                     @Override
