@@ -89,13 +89,13 @@ public class Login extends JFrame {
             if (authenticateUser(username, passwordStr)) {
                 isLoggedIn = true;
                 JOptionPane.showMessageDialog(Login.this, "Login Successful!");
-                dispose();
                 Point location = parent.getLocation();
                 parent.dispose();
                 GameMenu newGameMenu = new GameMenu();
                 newGameMenu.setLocation(location);
                 newGameMenu.setSize(parent.getSize());
                 newGameMenu.setVisible(true);
+                dispose();
             } else {
                 JOptionPane.showMessageDialog(Login.this, "Invalid username or password.");
             }
@@ -103,13 +103,13 @@ public class Login extends JFrame {
 
         backButton.addActionListener(e -> {
             AudioManager.getInstance().playClickSound();
-            dispose();
             Point location = parent.getLocation();
             parent.dispose();
             GameMenu newGameMenu = new GameMenu();
             newGameMenu.setLocation(location);
             newGameMenu.setSize(parent.getSize());
             newGameMenu.setVisible(true);
+            dispose();
         });
 
 

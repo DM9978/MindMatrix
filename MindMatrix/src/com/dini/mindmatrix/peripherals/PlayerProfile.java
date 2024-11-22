@@ -136,33 +136,31 @@ public class PlayerProfile extends JFrame {
             Login.isLoggedIn = false;
             AudioManager.getInstance().playClickSound();
             JOptionPane.showMessageDialog(this, "You have been logged out.");
-            dispose();
             Point location = parent.getLocation();
             parent.dispose();
             GameMenu newGameMenu = new GameMenu();
             newGameMenu.setLocation(location);
             newGameMenu.setSize(parent.getSize());
             newGameMenu.setVisible(true);
+            dispose();
         });
 
         leaderboardButton.addActionListener(e -> {
             AudioManager.getInstance().playClickSound();
-            Point location = this.getLocation();
-            Leaderboard leaderboard = new Leaderboard();
-            leaderboard.setLocation(location);
+            Leaderboard leaderboard = new Leaderboard(this);
+            leaderboard.setLocationRelativeTo(this);
             leaderboard.setVisible(true);
-            AudioManager.getInstance().playClickSound();
         });
 
         backButton.addActionListener(e -> {
             AudioManager.getInstance().playClickSound();
-            dispose();
             Point location = parent.getLocation();
             parent.dispose();
             GameMenu newGameMenu = new GameMenu();
             newGameMenu.setLocation(location);
             newGameMenu.setSize(parent.getSize());
             newGameMenu.setVisible(true);
+            dispose();
         });
     }
 

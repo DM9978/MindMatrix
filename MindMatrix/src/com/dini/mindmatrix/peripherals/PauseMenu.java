@@ -160,10 +160,11 @@ public class PauseMenu extends JDialog implements ActionListener {
                 System.exit(0);
                 break;
             case "Main Menu":
-                gameGUI.setVisible(false);
+                Point location = gameGUI.getLocationOnScreen();
                 GameMenu menu = new GameMenu();
-                menu.setLocation(getLocation());
+                menu.setLocation(location);
                 menu.setVisible(true);
+                gameGUI.dispose();
                 dispose();
                 break;
         }

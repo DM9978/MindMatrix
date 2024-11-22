@@ -27,9 +27,10 @@ public class Leaderboard extends JFrame {
     private boolean navigationStarted = false;
     private JButton[] menuButtons;
 
-    public Leaderboard() {
+    public Leaderboard(JFrame parent) {
         setTitle("Leaderboard");
         setSize(300, 440);
+        setLocationRelativeTo(parent);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setResizable(false);
 
