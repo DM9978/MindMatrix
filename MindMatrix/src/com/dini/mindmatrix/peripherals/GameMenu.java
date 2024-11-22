@@ -5,19 +5,25 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import javax.swing.Timer;
 
 public class GameMenu extends JFrame implements ActionListener {
     private static final long serialVersionUID = 1L;
 
     JButton startButton, settingsButton, aboutButton, loginButton, helpButton;
-    JLabel backgroundLabel, logoLabel;
+    JLabel backgroundLabel, logoLabel, highestScoreLabel, scoreValueLabel, helloLabel, userLabel;
     Font customFont, customFontAgency;
     private JButton profileButton;
     private Point initialClick;
     private JButton[] menuButtons;
     private int currentIndex = -1;
     private boolean navigationStarted = false;
+    private JLabel leftLineLabel;
+    private JLabel rightLineLabel;
+
 
     public GameMenu() {
         setSize(690, 520);
@@ -46,6 +52,44 @@ public class GameMenu extends JFrame implements ActionListener {
         ImageIcon backgroundIcon = new ImageIcon(getClass().getResource("/resources/bg.png"));
         backgroundLabel = new JLabel(backgroundIcon);
         backgroundLabel.setLayout(null);
+
+        helloLabel = new JLabel("Hello!");
+        helloLabel.setBounds(15, 5, 90, 40);
+        helloLabel.setFont(customFontAgency.deriveFont(17.5f));
+        helloLabel.setForeground(Color.BLACK);
+        backgroundLabel.add(helloLabel);
+
+        userLabel = new JLabel("Guest");
+        userLabel.setBounds(70, 5, 150, 40);
+        userLabel.setFont(customFontAgency.deriveFont(17f));
+        userLabel.setForeground(Color.BLACK);
+        backgroundLabel.add(userLabel);
+
+        highestScoreLabel = new JLabel("Best Score:");
+        highestScoreLabel.setBounds(getWidth() - 140, 5, 150, 40);
+        highestScoreLabel.setFont(customFontAgency.deriveFont(17f));
+        highestScoreLabel.setForeground(Color.BLACK);
+        backgroundLabel.add(highestScoreLabel);
+
+        scoreValueLabel = new JLabel("00");
+        scoreValueLabel.setBounds(getWidth() - 50, 5, 100, 40);
+        scoreValueLabel.setFont(customFontAgency.deriveFont(17.5f));
+        scoreValueLabel.setForeground(Color.BLACK);
+        backgroundLabel.add(scoreValueLabel);
+
+        ImageIcon leftLineIcon = new ImageIcon(getClass().getResource("/resources/line.png"));
+        ImageIcon rightLineIcon = new ImageIcon(getClass().getResource("/resources/line1.png"));
+
+        leftLineLabel = new JLabel(leftLineIcon);
+        leftLineLabel.setBounds(15, 35, leftLineIcon.getIconWidth(), leftLineIcon.getIconHeight());
+        backgroundLabel.add(leftLineLabel);
+
+        rightLineLabel = new JLabel(rightLineIcon);
+        rightLineLabel.setBounds(getWidth() - 120, 35, rightLineIcon.getIconWidth(), rightLineIcon.getIconHeight());
+        backgroundLabel.add(rightLineLabel);
+
+        fetchAndDisplayUserData();
+        updateLabels();
 
         ImageIcon logoIcon = new ImageIcon(getClass().getResource("/resources/rr.png"));
         logoLabel = new JLabel(logoIcon);
@@ -141,6 +185,44 @@ public class GameMenu extends JFrame implements ActionListener {
         } else {
             loginButton.setVisible(true);
             profileButton.setVisible(false);
+        }
+    }
+
+    private void fetchAndDisplayUserData() {
+        if (Login.loggedInUserId > 0) {
+            try {
+                Connection conn = DatabaseConnection.getConnection();
+                String query = "SELECT username, highest_score FROM users WHERE player_id = ?";
+                PreparedStatement ps = conn.prepareStatement(query);
+                ps.setInt(1, Login.loggedInUserId);
+
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String username = rs.getString("username");
+                    int highestScore = rs.getInt("highest_score");
+                    String formattedScore = String.format("%02d", highestScore);
+                    userLabel.setText(username);
+                    scoreValueLabel.setText(formattedScore);
+                }
+
+                rs.close();
+                ps.close();
+                conn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error fetching user data.");
+            }
+        }
+    }
+
+    private void updateLabels() {
+        boolean isLoggedIn = Login.isLoggedIn;
+
+        if (userLabel != null) {
+            userLabel.setText(isLoggedIn ? userLabel.getText() : "Guest");
+        }
+        if (scoreValueLabel != null) {
+            scoreValueLabel.setText(isLoggedIn ? scoreValueLabel.getText() : "00");
         }
     }
 
