@@ -77,15 +77,15 @@ public class GameMenu extends JFrame implements ActionListener {
         scoreValueLabel.setForeground(Color.BLACK);
         backgroundLabel.add(scoreValueLabel);
 
-        ImageIcon leftLineIcon = new ImageIcon(getClass().getResource("/resources/linel.png"));
-        ImageIcon rightLineIcon = new ImageIcon(getClass().getResource("/resources/line2e.png"));
+        ImageIcon leftLineIcon = new ImageIcon(getClass().getResource("/resources/ln4.png"));
+        ImageIcon rightLineIcon = new ImageIcon(getClass().getResource("/resources/ln3.png"));
 
         leftLineLabel = new JLabel(leftLineIcon);
         leftLineLabel.setBounds(15, 38, leftLineIcon.getIconWidth(), leftLineIcon.getIconHeight());
         backgroundLabel.add(leftLineLabel);
 
         rightLineLabel = new JLabel(rightLineIcon);
-        rightLineLabel.setBounds(getWidth() - 160, 38, rightLineIcon.getIconWidth(), rightLineIcon.getIconHeight());
+        rightLineLabel.setBounds(getWidth() - 183, 38, rightLineIcon.getIconWidth(), rightLineIcon.getIconHeight());
         backgroundLabel.add(rightLineLabel);
 
         fetchAndDisplayUserData();
