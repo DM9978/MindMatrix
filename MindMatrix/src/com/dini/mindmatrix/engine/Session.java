@@ -1,4 +1,4 @@
-package com.dini.mindmatrix.peripherals;
+package com.dini.mindmatrix.engine;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,5 +1,7 @@
 package com.dini.mindmatrix.peripherals;
 
+import com.dini.mindmatrix.engine.AudioManager;
+
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;

@@ -1,9 +1,11 @@
 package com.dini.mindmatrix.peripherals;
 
+import com.dini.mindmatrix.engine.AudioManager;
+import com.dini.mindmatrix.engine.DatabaseConnection;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

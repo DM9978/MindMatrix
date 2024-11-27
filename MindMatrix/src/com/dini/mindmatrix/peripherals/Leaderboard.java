@@ -1,5 +1,8 @@
 package com.dini.mindmatrix.peripherals;
 
+import com.dini.mindmatrix.engine.AudioManager;
+import com.dini.mindmatrix.engine.DatabaseConnection;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

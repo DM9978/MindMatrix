@@ -1,5 +1,7 @@
 package com.dini.mindmatrix.peripherals;
 
+import com.dini.mindmatrix.engine.AudioManager;
+import com.dini.mindmatrix.engine.DatabaseConnection;
 import com.dini.mindmatrix.engine.GameEngine;
 
 import javax.swing.*;

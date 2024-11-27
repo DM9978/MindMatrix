@@ -1,4 +1,4 @@
-package com.dini.mindmatrix.peripherals;
+package com.dini.mindmatrix.engine;
 
 import javafx.embed.swing.JFXPanel;
 import javax.sound.sampled.*;
@@ -123,7 +123,7 @@ public class AudioManager {
 
 
 
-    void playSound(String soundKey) {
+    public void playSound(String soundKey) {
         if (!isSFXOn) return;
         try {
             Clip clip = sfxClips.get(soundKey);
